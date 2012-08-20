@@ -1,0 +1,14 @@
+extends layout
+
+block content
+  h1= title
+  if(typeof(user) != 'undefined') 
+   p Welcome to #{title}, #{user}
+  else
+   p Welcome to #{title}
+   form(action="/", method="post")
+    input(type="text", name="user")
+    <br/>
+    input(type="password", name="pwd")
+    <br/>
+    input(type="submit", value="Spot Me")
