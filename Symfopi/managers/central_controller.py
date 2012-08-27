@@ -14,18 +14,15 @@ from playback import PlaybackManager
 from spotify_API import SpotifyAPIManager
 from motion import MotionManager
 
-
-# Superb reference for Python's Base HTTP Server:
-#   http://www.doughellmann.com/PyMOTW/BaseHTTPServer/index.html#module-BaseHTTPServer
-# Also includes advice on automatic multi-threading.
-
-
         
 class ThreadedHTTPServer( ThreadingMixIn, HTTPServer ):
     """Extension to BaseHTTPServer's HTTPServer with threaded connections,
     enabling asynchronous behaviour.
     
     Clearly, this enables usual race condition issues."""
+    # Superb reference for Python's Base HTTP Server:
+    #   http://www.doughellmann.com/PyMOTW/BaseHTTPServer/index.html#module-BaseHTTPServer
+    # Also includes advice on automatic multi-threading.
     
     def __init__( self, server_addr, req_handler_class, central_controller,
                   controller_functions = {} ):
@@ -43,7 +40,6 @@ class ThreadedHTTPServer( ThreadingMixIn, HTTPServer ):
         
         self.c_controller = central_controller
         self.c_funcs = controller_functions
-        
         
     class HTTPRequestHandler( BaseHTTPRequestHandler ):
         """Class for objects representing a specific case of hanlding a 
@@ -133,18 +129,14 @@ class CentralController( object ):
     """
     
     def __init__( self ):
-        """
-        """
-        # List of methods that the PAI wi
-        self._methods = ''
+        """ """
         
     #
     #
     # Controller 
     #
     def start( self ):
-        """
-        """
+        """ """
         
         #
         # Playback manager
@@ -206,6 +198,8 @@ if __name__ == '__main__':
 
     cc_daemon = CentralController()
     
+    #
+    # Rewire the signal handler
     global SIGTERM_SENT
     SIGTERM_SENT = False 
     def signal_handler_exit( sig, frame=None ):
@@ -216,6 +210,8 @@ if __name__ == '__main__':
         #~ need to get working
     signal.signal( signal.SIGTERM, signal_handler_exit )
     
+    #
+    # Go go go
     cc_daemon.start()
 
 
