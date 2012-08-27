@@ -1,4 +1,3 @@
-from multiprocessing import Process, Queue, Pipe
 import collections
 import time
 import signal
@@ -7,10 +6,13 @@ import logging
 import threading
 import random 
 
-from abstract_manager import AbstractManager
-
 
 class MotionMonitorMocker( threading.Thread ):
+    """A mocker object for testing a motion monitor in the app.
+    
+    Also serves to demonstrate how the real motion monitor should act. 
+    """
+    
     def __init__( self, motion_started_callback, motion_stopped_callback ):
         threading.Thread.__init__( self )
         
@@ -23,7 +25,6 @@ class MotionMonitorMocker( threading.Thread ):
         self.__stop_requested = True 
     
     def run( self ):
-        print "~RUN?"
         #~ Long sleep durations in thread mean long .join() waits for parent
         # caller after a stop request
         while not self.__stop_requested:
@@ -38,7 +39,7 @@ class MotionMonitorMocker( threading.Thread ):
             time.sleep( stop_dur )
 
 
-class MotionManager( AbstractManager ):
+class MotionManager( object ):
     
     def __init__( self, motion_started_callback, motion_stopped_callback ):
         """
@@ -52,58 +53,46 @@ class MotionManager( AbstractManager ):
         self.__motion_started_cb = motion_started_callback
         self.__motion_stopped_cb = motion_stopped_callback
 
-
     def enable_motion_monitor( self ):
         """
         Enable motion monitoring.
         
         If monitoring is already enabled, it will be restarted.
         """
-        self._parent_connection.send( ['_enable_motion_monitor'] )
-        
-    def _enable_motion_monitor( self ):
         # Disable if already running
         if self.__motion_monitor_thread is not None:
-            self._disable_motion_monitor()
+            self.disable_motion_monitor()
         
         # Enable
         assert self.__motion_monitor_thread is None
         self.__motion_monitor_thread = MotionMonitorMocker( self.__motion_started_cb, self.__motion_stopped_cb )
+        self.__motion_monitor_thread.setDaemon( True )
         self.__motion_monitor_thread.start()
     
-    
     def is_enabled( self ):
-        """
-        """
-        self._parent_connection.send( ['_is_enabled',] )
-        ret = self._parent_connection.recv()  # blocks
-        return ret
-        
-    def _is_enabled( self ):
+        """ """
         if self.__motion_monitor_thread is None:
-            self._subproc_connection.send( False )  # return False
+            return False 
         else:
             if self.__motion_monitor_thread.isAlive():
-                self._subproc_connection.send( True )  # return True
+                return True
             else:
-                self._subproc_connection.send( False )  # return True
+                return False 
     
-        
     def disable_motion_monitor( self ):
         """Disable motion monitoring.
         
-        If monitoring is already disabled, no effect.
+        If monitoring is already disabled, no effect. Blocks until the motion
+        monitor thread succesfully stops.
         """
-        self._parent_connection.send( ['_disable_motion_monitor'] )
-    
-    
-    def _disable_motion_monitor( self ):
         if self.__motion_monitor_thread is not None:
             self.__motion_monitor_thread.stop()
             self.__motion_monitor_thread.join()
             self.__motion_monitor_thread = None 
         
-
+    def finish():
+        """Finish and tidy up the manager."""
+        self.disable_motion_manager()
 
 
 
