@@ -21,24 +21,29 @@ class MotionMonitorMocker( threading.Thread ):
         
         self.__stop_requested = False 
     
-    def stop():
+    def stop( self ):
         self.__stop_requested = True 
     
     def run( self ):
-        #~ Long sleep durations in thread mean long .join() waits for parent
-        # caller after a stop request
+        children = []
         while not self.__stop_requested:
-            # Period of motion
-            play_dur = random.uniform( 10, 15 )
-            self.__motion_started_cb()
-            time.sleep( play_dur )
+            if not children or all( map( lambda x: not x.is_alive(), children ) ):
+                # all the timers have stopped, so start some new ones
+                
+                tmr = threading.Timer( 5, self.__motion_started_cb )  # in x secs abolsute time
+                children.append( tmr )
+                tmr.start()
+
+                tmr = threading.Timer( 15, self.__motion_stopped_cb )  # in x secs abolsute time
+                children.append( tmr )
+                tmr.start()
+            
+            time.sleep( 0.1 )
         
-            # Period of no motion 
-            stop_dur = random.uniform( 4, 8 )
-            self.__motion_stopped_cb()
-            time.sleep( stop_dur )
-
-
+        # Main loop finished, so tidy up
+        for c in children:
+            c.cancel()
+            
 class MotionManager( object ):
     
     def __init__( self, motion_started_callback, motion_stopped_callback ):
@@ -89,6 +94,7 @@ class MotionManager( object ):
             self.__motion_monitor_thread.stop()
             self.__motion_monitor_thread.join()
             self.__motion_monitor_thread = None 
+            print "Motion thread stop successful"
         
     def finish():
         """Finish and tidy up the manager."""
