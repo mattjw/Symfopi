@@ -15,7 +15,7 @@ from spotify.manager import SpotifySessionManager, SpotifyPlaylistManager, \
     
 
 class PlaybackManager( object ):
-    """A manager for audio playback.
+    """A manager for audio playback. 
     """
     def __init__( self, username, password, api_key ):
         self._is_playing = False 
